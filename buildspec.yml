@@ -5,17 +5,12 @@ env:
      image: "whisper-codebuildtest"
 
 phases:
-  pre_build:
-    commands:
-      - echo Logging in to Amazon ECR...
-      - aws --version
-      - echo $(aws ecr get-login-password --region $AWS_DEFAULT_REGION) | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
       - chmod +x build_and_push.sh
-      - build_and_push.sh $image
+      - ./build_and_push.sh $image
   post_build:
     commands:
       - echo Build completed on `date`
