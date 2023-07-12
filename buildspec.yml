@@ -4,6 +4,8 @@ env:
   variables:
      image: "whisper"
      tag: "flasktest1"
+  exported-variables:
+     PYTHONPATH: ".:$PYTHONPATH" 
 
 phases:
   pre_build:
