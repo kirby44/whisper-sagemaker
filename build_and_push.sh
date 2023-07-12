@@ -28,17 +28,12 @@ then
     region=$(aws configure get region)
 fi
 
-# A function to suppress the error from the command
-function suppress_error {
-    "$@" 2>/dev/null || true
-}
+repositoryExists=$(aws ecr describe-repositories --region "${region}" --query 'repositories[?repositoryName==`'$image'`]' --output text)
 
-suppress_error aws ecr describe-repositories --repository-names "${image}"
-
-if [ $? -ne 0 ]
+if [ -z "$repositoryExists" ]
 then
     echo "Repository does not exist. Creating repository..."
-    aws ecr create-repository --repository-name "${image}" > /dev/null
+    aws ecr create-repository --repository-name "${image}" --region "${region}" > /dev/null
 
     if [ $? -ne 0 ]
     then
