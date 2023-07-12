@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
      image: "whisper"
-     tag: "flasktest"
+     tag: "flasktest1"
 
 phases:
   build:
