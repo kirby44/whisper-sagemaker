@@ -10,7 +10,7 @@ class TestTranscribe(unittest.TestCase):
 
         from src.transcribe import base64_to_wavfile  # import after patching
 
-        with open('../test/base64_audio', 'r') as f:
+        with open('test/base64_audio', 'r') as f:
             base64_audio = f.read().strip()
 
         wav_file = base64_to_wavfile(base64_audio)
