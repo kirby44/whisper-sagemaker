@@ -9,5 +9,8 @@ phases:
   pre_build:
     commands:
       - echo Running unit tests...
+      - echo Current directory is `pwd`
+      - echo PYTHONPATH is $PYTHONPATH
       - export PYTHONPATH=".:$PYTHONPATH"
       - python -m unittest discover -s test -p 'test*.py' || exit 1
+
