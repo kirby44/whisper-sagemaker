@@ -23,5 +23,8 @@ class TestTranscribe(unittest.TestCase):
         self.assertEqual(wav_file.read(), expected_audio_data)
         print('File is base64-encoded correctly')
 
+        self.assertEqual(wav_file.name, 'hoge.wav')
+ 
+
 if __name__ == '__main__':
     unittest.main()
