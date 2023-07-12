@@ -17,7 +17,11 @@ class TestTranscribe(unittest.TestCase):
 
         # Add your assertions here
         self.assertIsNotNone(wav_file)
+        print(f'wav_file is {wav_file}')  # print information about wav_file
         self.assertEqual(wav_file.name, 'audio.wav')
+        print('File name is correct')  # print a success message if the filename assertion passes
+        self.assertEqual(wav_file.read(), expected_audio_data)
+        print('File is base64-encoded correctly')
 
 if __name__ == '__main__':
     unittest.main()
