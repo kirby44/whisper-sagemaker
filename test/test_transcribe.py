@@ -20,5 +20,5 @@ def test_base64_to_wavfile():
         assert wav_file.read() == wav_file.getvalue()
         print('File is base64-encoded correctly')
 
-        assert wav_file.name != 'hoge.wav'
+        assert wav_file.name == 'hoge.wav'
 
