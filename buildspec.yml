@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-     image: "whisper-codebuildtest"
+     image: "whisper"
 
 phases:
   build:
