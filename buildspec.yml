@@ -12,4 +12,6 @@ phases:
       - echo Current directory is `pwd`
       - echo PYTHONPATH is $PYTHONPATH
       - export PYTHONPATH="./src:$PYTHONPATH"
+      - echo Contents of src directory: && ls ./src
       - python -m unittest discover -s test -p 'test*.py' || exit 1
+
