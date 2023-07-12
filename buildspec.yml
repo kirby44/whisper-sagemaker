@@ -11,7 +11,7 @@ phases:
       - echo Build started on `date`
       - echo Building the Docker image...
       - chmod +x build_and_push.sh
-      - ./build_and_push.sh $image $AWS_REGION
+      - ./build_and_push.sh $image $AWS_REGION $tag
   post_build:
     commands:
       - echo Build completed on `date`
