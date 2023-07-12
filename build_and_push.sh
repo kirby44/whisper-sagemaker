@@ -15,6 +15,7 @@ fi
 chmod +x src/train
 chmod +x src/serve
 
+echo "Fetching AWS account details..."
 account=$(aws sts get-caller-identity --query Account --output text)
 
 if [ $? -ne 0 ]
@@ -28,6 +29,7 @@ then
     region=$(aws configure get region)
 fi
 
+echo "Checking if ECR repository exists..."
 repositoryExists=$(aws ecr describe-repositories --region "${region}" --query 'repositories[?repositoryName==`'$image'`]' --output text)
 
 if [ -z "$repositoryExists" ]
@@ -45,7 +47,7 @@ fi
 version=0
 tag_name="${tag}${version}"
 
-# Check if images exist in the repository
+echo "Checking if images exist in the repository..."
 imageDetails=$(aws ecr describe-images --repository-name ${image} --region ${region} --output text 2>/dev/null)
 
 if [ $? -eq 0 ] && [ ! -z "$imageDetails" ]
@@ -61,9 +63,14 @@ fi
 
 fullname="${account}.dkr.ecr.${region}.amazonaws.com/${image}:${tag_name}"
 
+echo "Logging into ECR..."
 aws ecr get-login-password --region "${region}" | docker login --username AWS --password-stdin "${account}".dkr.ecr."${region}".amazonaws.com
 
+echo "Building Docker image..."
 docker build  -t ${image} .
+
+echo "Tagging Docker image..."
 docker tag ${image} ${fullname}
 
+echo "Pushing Docker image to ECR..."
 docker push ${fullname}
