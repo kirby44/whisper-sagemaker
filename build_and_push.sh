@@ -10,6 +10,7 @@
 set -ex
 
 image=$1
+region=$2
 
 if [ "$image" == "" ]
 then
@@ -28,11 +29,11 @@ then
     exit 255
 fi
 
-
-# Get the region defined in the current configuration (default to us-west-2 if none defined)
-region=$(aws configure get region)
-region=${region:-us-west-2}
-
+# if region is not passed as argument, fetch it from aws configuration
+if [ -z "$region" ]
+then
+    region=$(aws configure get region)
+fi
 
 fullname="${account}.dkr.ecr.${region}.amazonaws.com/${image}:latest"
 
