@@ -28,7 +28,12 @@ then
     region=$(aws configure get region)
 fi
 
-aws ecr describe-repositories --repository-names "${image}" > /dev/null 
+# A function to suppress the error from the command
+function suppress_error {
+    "$@" 2>/dev/null || true
+}
+
+suppress_error aws ecr describe-repositories --repository-names "${image}"
 
 if [ $? -ne 0 ]
 then
