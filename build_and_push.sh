@@ -1,27 +1,20 @@
 #!/usr/bin/env bash
 
-# This script shows how to build the Docker image and push it to ECR to be ready for use
-# by SageMaker.
-
-# The argument to this script is the image name. This will be used as the image on the local
-# machine and combined with the account and region to form the repository name for ECR.
-
-# enable logs to investigate the failure of Building with CodeBuild
 set -ex
 
 image=$1
 region=$2
+tag=${3:-latest}
 
 if [ "$image" == "" ]
 then
-    echo "Usage: $0 <image-name>"
+    echo "Usage: $0 <image-name> <region> [tag]"
     exit 1
 fi
 
 chmod +x src/train
 chmod +x src/serve
 
-# Get the account number associated with the current IAM credentials
 account=$(aws sts get-caller-identity --query Account --output text)
 
 if [ $? -ne 0 ]
@@ -29,15 +22,10 @@ then
     exit 255
 fi
 
-# if region is not passed as argument, fetch it from aws configuration
 if [ -z "$region" ]
 then
     region=$(aws configure get region)
 fi
-
-fullname="${account}.dkr.ecr.${region}.amazonaws.com/${image}:latest"
-
-# If the repository doesn't exist in ECR, create it.
 
 aws ecr describe-repositories --repository-names "${image}" > /dev/null 2>&1
 
@@ -46,11 +34,19 @@ then
     aws ecr create-repository --repository-name "${image}" > /dev/null
 fi
 
-# Get the login command from ECR and execute it directly
-aws ecr get-login-password --region "${region}" | docker login --username AWS --password-stdin "${account}".dkr.ecr."${region}".amazonaws.com
+version=0
+tag_name="${tag}${version}"
+exist=$(aws ecr describe-images --repository-name ${image} --region ${region} --query 'imageDetails[].imageTags[]' --output text | grep -o -w ${tag_name})
 
-# Build the docker image locally with the image name and then push it to ECR
-# with the full name.
+while [[ "${exist}" != "" ]]; do
+  version=$((version+1))
+  tag_name="${tag}${version}"
+  exist=$(aws ecr describe-images --repository-name ${image} --region ${region} --query 'imageDetails[].imageTags[]' --output text | grep -o -w ${tag_name})
+done
+
+fullname="${account}.dkr.ecr.${region}.amazonaws.com/${image}:${tag_name}"
+
+aws ecr get-login-password --region "${region}" | docker login --username AWS --password-stdin "${account}".dkr.ecr."${region}".amazonaws.com
 
 docker build  -t ${image} .
 docker tag ${image} ${fullname}
