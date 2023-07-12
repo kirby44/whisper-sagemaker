@@ -4,11 +4,10 @@ env:
   variables:
      image: "whisper"
      tag: "flasktest1"
-  exported-variables:
-     PYTHONPATH: ".:$PYTHONPATH" 
 
 phases:
   pre_build:
     commands:
       - echo Running unit tests...
+      - export PYTHONPATH=".:$PYTHONPATH"
       - python -m unittest discover -s test -p 'test*.py' || exit 1
