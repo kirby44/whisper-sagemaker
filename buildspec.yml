@@ -11,7 +11,7 @@ phases:
       - echo Running unit tests...
       - echo Current directory is `pwd`
       - echo PYTHONPATH is $PYTHONPATH
-      - export PYTHONPATH="./src_tmp:$PYTHONPATH"
+      - export PYTHONPATH="./src:$PYTHONPATH"
       - echo PYTHONPATH is $PYTHONPATH
-      - echo Contents of src directory && ls ./src_tmp
+      - echo Contents of src directory && ls ./src
       - python -m unittest discover -s test -p 'test*.py' || exit 1
