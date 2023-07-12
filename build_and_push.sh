@@ -48,7 +48,7 @@ tag_name="${tag}${version}"
 # Check if images exist in the repository
 imageDetails=$(aws ecr describe-images --repository-name ${image} --region ${region} --output text 2>/dev/null)
 
-if [ $? -eq 0 ]
+if [ $? -eq 0 ] && [ ! -z "$imageDetails" ]
 then
     exist=$(echo $imageDetails | grep -o -w ${tag_name})
 
