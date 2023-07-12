@@ -1,15 +1,18 @@
 from __future__ import print_function
-import imp
-
 import os, tempfile
-from urllib import request
-
 import whisper
-
 import flask
+import io
+import base64
 
 prefix = "/opt/ml/"
 model_path = os.path.join(prefix, "model")
+
+def base64_to_wavfile(wav_base64) -> io.BytesIO:
+    wav_binary = base64.b64decode(wav_base64)
+    wav_file = io.BytesIO(wav_binary)
+    wav_file.name = "audio.wav"
+    return wav_file
 
 # TODO: TranscribeService
 class TranslateService(object):
@@ -41,10 +44,10 @@ def ping():
 
 @app.route("/invocations", methods=["POST"])
 def transcribe():
-    res = None
-    with tempfile.NamedTemporaryFile() as f:
-        f.write(flask.request.get_data())
-        res = TranslateService.transcribe(f.name)
+    base64_audio_data = request.get_data().decode("utf-8")
+    wav_file = base64_to_wavfile(base64_audio_data)
+    res = TranslateService.transcribe(wav_file)
+    return Response(response=res, status=200, mimetype="text/plain")
 
     return flask.Response(response=res, status=200, mimetype="text/plain")
 
