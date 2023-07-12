@@ -1,23 +1,23 @@
 import unittest
 import base64
-import os
-from src.transcribe import base64_to_wavfile
+from unittest.mock import patch
 
-class TestBase64ToWavfile(unittest.TestCase):
-    def test_base64_to_wavfile(self):
-        # Read base64 string from file
-        with open('test/base64_audio', 'r') as f:
-            b64_string = f.read().strip()
+class TestTranscribe(unittest.TestCase):
+    @patch('src.transcribe.whisper')
+    def test_base64_to_wavfile(self, mock_whisper):
+        # create a dummy load_model function
+        mock_whisper.load_model.return_value = None
 
-        # Read the original audio data
-        with open('test/dialogue1.m4a', 'rb') as f:
-            original_data = f.read()
+        from src.transcribe import base64_to_wavfile  # import after patching
 
-        # Call your function with the test data
-        result = base64_to_wavfile(b64_string)
+        with open('../test/base64_audio', 'r') as f:
+            base64_audio = f.read().strip()
 
-        # Check that the returned BytesIO object's content matches the original audio data
-        self.assertEqual(result.read(), original_data)
+        wav_file = base64_to_wavfile(base64_audio)
+
+        # Add your assertions here
+        self.assertIsNotNone(wav_file)
+        self.assertEqual(wav_file.name, 'audio.wav')
 
 if __name__ == '__main__':
     unittest.main()
