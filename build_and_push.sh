@@ -19,6 +19,7 @@ account=$(aws sts get-caller-identity --query Account --output text)
 
 if [ $? -ne 0 ]
 then
+    echo "Failed to get Account"
     exit 255
 fi
 
@@ -27,11 +28,18 @@ then
     region=$(aws configure get region)
 fi
 
-aws ecr describe-repositories --repository-names "${image}" > /dev/null 2>&1
+aws ecr describe-repositories --repository-names "${image}" > /dev/null 
 
 if [ $? -ne 0 ]
 then
+    echo "Repository does not exist. Creating repository..."
     aws ecr create-repository --repository-name "${image}" > /dev/null
+
+    if [ $? -ne 0 ]
+    then
+        echo "Failed to create repository"
+        exit 255
+    fi
 fi
 
 version=0
