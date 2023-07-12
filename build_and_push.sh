@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# This script shows how to build the Docker image and push it to ECR to be ready for use
+# by SageMaker.
+
+# The arguments to this script are the image name and region.
+# It can now also take an optional 'tag' argument. If not passed, 'latest' will be assigned.
+
+# enable logs to investigate the failure of Building with CodeBuild
 set -ex
 
 image=$1
@@ -8,69 +15,44 @@ tag=${3:-latest}
 
 if [ "$image" == "" ]
 then
-    echo "Usage: $0 <image-name> <region> [tag]"
+    echo "Usage: $0 <image-name>"
     exit 1
 fi
 
 chmod +x src/train
 chmod +x src/serve
 
-echo "Fetching AWS account details..."
+# Get the account number associated with the current IAM credentials
 account=$(aws sts get-caller-identity --query Account --output text)
 
 if [ $? -ne 0 ]
 then
-    echo "Failed to get Account"
     exit 255
 fi
 
+# if region is not passed as argument, fetch it from aws configuration
 if [ -z "$region" ]
 then
     region=$(aws configure get region)
 fi
 
-echo "Checking if ECR repository exists..."
-repositoryExists=$(aws ecr describe-repositories --region "${region}" --query 'repositories[?repositoryName==`'$image'`]' --output text)
+fullname="${account}.dkr.ecr.${region}.amazonaws.com/${image}:${tag}"
 
-if [ -z "$repositoryExists" ]
+# If the repository doesn't exist in ECR, create it.
+aws ecr describe-repositories --repository-names "${image}" > /dev/null 2>&1
+
+if [ $? -ne 0 ]
 then
-    echo "Repository does not exist. Creating repository..."
-    aws ecr create-repository --repository-name "${image}" --region "${region}" > /dev/null
-
-    if [ $? -ne 0 ]
-    then
-        echo "Failed to create repository"
-        exit 255
-    fi
+    aws ecr create-repository --repository-name "${image}" > /dev/null
 fi
 
-version=0
-tag_name="${tag}${version}"
-
-echo "Checking if images exist in the repository..."
-imageDetails=$(aws ecr describe-images --repository-name ${image} --region ${region} --output text 2>/dev/null)
-
-if [ $? -eq 0 ] && [ ! -z "$imageDetails" ]
-then
-    exist=$(echo $imageDetails | grep -o -w ${tag_name})
-
-    while [[ "${exist}" != "" ]]; do
-      version=$((version+1))
-      tag_name="${tag}${version}"
-      exist=$(echo $imageDetails | grep -o -w ${tag_name})
-    done
-fi
-
-fullname="${account}.dkr.ecr.${region}.amazonaws.com/${image}:${tag_name}"
-
-echo "Logging into ECR..."
+# Get the login command from ECR and execute it directly
 aws ecr get-login-password --region "${region}" | docker login --username AWS --password-stdin "${account}".dkr.ecr."${region}".amazonaws.com
 
-echo "Building Docker image..."
-docker build  -t ${image} .
+# Build the docker image locally with the image name and then push it to ECR
+# with the full name.
 
-echo "Tagging Docker image..."
+docker build -t ${image} .
 docker tag ${image} ${fullname}
 
-echo "Pushing Docker image to ECR..."
 docker push ${fullname}
