@@ -5,6 +5,10 @@
 
 # The argument to this script is the image name. This will be used as the image on the local
 # machine and combined with the account and region to form the repository name for ECR.
+
+# enable logs to investigate the failure of Building with CodeBuild
+set -ex
+
 image=$1
 
 if [ "$image" == "" ]
