@@ -7,6 +7,7 @@ import base64
 
 prefix = "/opt/ml/"
 model_path = os.path.join(prefix, "model")
+model_size = "medium"
 
 def base64_to_wavfile(wav_base64) -> io.BytesIO:
     wav_binary = base64.b64decode(wav_base64)
@@ -21,7 +22,7 @@ class TranslateService(object):
     @classmethod
     def get_model(cls):
         if cls.model == None:
-            cls.model = whisper.load_model("medium", download_root=model_path)
+            cls.model = whisper.load_model(model_size, download_root=model_path)
 
         return cls.model
 
@@ -44,10 +45,7 @@ def ping():
 
 @app.route("/invocations", methods=["POST"])
 def transcribe():
-    base64_audio_data = request.get_data().decode("utf-8")
+    base64_audio_data = flask.request.get_data().decode("utf-8")
     wav_file = base64_to_wavfile(base64_audio_data)
     res = TranslateService.transcribe(wav_file)
-    return Response(response=res, status=200, mimetype="text/plain")
-
     return flask.Response(response=res, status=200, mimetype="text/plain")
-
