@@ -44,13 +44,20 @@ fi
 
 version=0
 tag_name="${tag}${version}"
-exist=$(aws ecr describe-images --repository-name ${image} --region ${region} --query 'imageDetails[].imageTags[]' --output text | grep -o -w ${tag_name})
 
-while [[ "${exist}" != "" ]]; do
-  version=$((version+1))
-  tag_name="${tag}${version}"
-  exist=$(aws ecr describe-images --repository-name ${image} --region ${region} --query 'imageDetails[].imageTags[]' --output text | grep -o -w ${tag_name})
-done
+# Check if images exist in the repository
+imageDetails=$(aws ecr describe-images --repository-name ${image} --region ${region} --output text 2>/dev/null)
+
+if [ $? -eq 0 ]
+then
+    exist=$(echo $imageDetails | grep -o -w ${tag_name})
+
+    while [[ "${exist}" != "" ]]; do
+      version=$((version+1))
+      tag_name="${tag}${version}"
+      exist=$(echo $imageDetails | grep -o -w ${tag_name})
+    done
+fi
 
 fullname="${account}.dkr.ecr.${region}.amazonaws.com/${image}:${tag_name}"
 
