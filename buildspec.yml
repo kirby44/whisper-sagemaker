@@ -1,3 +1,10 @@
+version: 0.2
+
+env:
+  variables:
+     image: "whisper"
+     tag: "flasktest1"
+     
 phases:
   pre_build:
     commands:
