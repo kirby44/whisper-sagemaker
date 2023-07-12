@@ -8,12 +8,11 @@ class TestTranscribe(unittest.TestCase):
         # create a dummy load_model function
         mock_whisper.load_model.return_value = None
 
-        from ..src.transcribe import base64_to_wavfile  # import after patching
-
+        from src import transcribe
         with open('test/base64_audio', 'r') as f:
             base64_audio = f.read().strip()
 
-        wav_file = base64_to_wavfile(base64_audio)
+        wav_file = transcribe.base64_to_wavfile(base64_audio)
 
         # Add your assertions here
         self.assertIsNotNone(wav_file)
