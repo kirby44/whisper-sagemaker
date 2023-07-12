@@ -3,7 +3,7 @@ import base64
 from unittest.mock import patch
 
 class TestTranscribe(unittest.TestCase):
-    @patch('src.transcribe.whisper')
+    @patch('src_tmp.transcribe.whisper')
     def test_base64_to_wavfile(self, mock_whisper):
         # create a dummy load_model function
         mock_whisper.load_model.return_value = None
