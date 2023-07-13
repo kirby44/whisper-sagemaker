@@ -56,3 +56,22 @@ def test_invocations_post():
             assert res.data.decode('utf-8') == dummy_transcription
             assert res.status_code == 200
     logger.info('Invocations POST endpoint returned expected results')
+
+def test_invocations_post_with_initial_prompt():
+    logger.info("Starting test: test_invocations_post_with_initial_prompt")
+    dummy_transcription = "transcribed text"
+    dummy_initial_prompt = "initial_prompt"
+    request_data = {
+        "audio": base64.b64encode(b"dummy binary data").decode("utf-8"),
+        "initial_prompt": dummy_initial_prompt
+    }
+
+    with patch('src.transcribe.TranslateService.transcribe', return_value=dummy_transcription) as mocked_transcribe:
+        with transcribe.app.test_client() as client:
+            res = client.post("/invocations", json=request_data)
+            assert res.data.decode('utf-8') == dummy_transcription
+            assert res.status_code == 200
+            # Check that transcribe was called with correct arguments
+            mocked_transcribe.assert_called_once_with(ANY, initial_prompt=dummy_initial_prompt)
+    logger.info('Invocations POST endpoint with initial_prompt returned expected results')
+
