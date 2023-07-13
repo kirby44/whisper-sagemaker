@@ -10,13 +10,7 @@ phases:
       - python -m venv .venv
       - . .venv/bin/activate
       - pip install -r test_main/requirements.txt
-      - pip install -r test_whisper/requirements.txt
   build:
     commands:
       - echo run tests...
-      - python -m pytest
-image:
-  name: nvidia/cuda:11.0-base  # example of CUDA compatible Docker image
-  env:
-    variables:
-       NVIDIA_VISIBLE_DEVICES: "all"
+      - python -m pytest pytest test_main

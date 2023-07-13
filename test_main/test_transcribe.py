@@ -23,6 +23,24 @@ def test_transcribe():
         assert res == "transcribed text"
     logger.info('Transcribe function was called correctly with the expected input')
 
+def test_transcribe_initial_prompt():
+    logger.info("Starting test: test_transcribe_initial_prompt")
+    dummy_audio = b"dummy binary data"  # this is now a bytes object
+    dummy_initial_prompt = "initial_prompt"
+
+    dummy_model = Mock()  # create a dummy model
+    dummy_model.transcribe.return_value = {"text": "transcribed text"}
+
+    # Replace whisper.load_model with a function that returns the dummy model
+    with patch('whisper.load_model', return_value=dummy_model):
+        # Add the initial_prompt argument when calling the transcribe method
+        res = transcribe.TranslateService.transcribe(dummy_audio, initial_prompt=dummy_initial_prompt)
+
+        # Check that the dummy model was used with the correct arguments
+        dummy_model.transcribe.assert_called_once_with(ANY, initial_prompt=dummy_initial_prompt)
+
+        assert res == "transcribed text"
+    logger.info('Transcribe function was called correctly with the expected initial_prompt')
 
 def test_invocations_post():
     logger.info("Starting test: test_invocations_post")

@@ -21,15 +21,15 @@ class TranslateService(object):
         return cls.model
 
     @classmethod
-    def transcribe(cls, wav_binary):
+    def transcribe(cls, wav_binary, initial_prompt=None):
         # create a temporary file to store the audio data
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as temp_wav_file:
             temp_wav_file.write(wav_binary)
             temp_wav_file.flush()  # make sure the data is written to disk
             model = cls.get_model()
-            res = model.transcribe(temp_wav_file.name)
+            # Pass initial_prompt to the transcribe method
+            res = model.transcribe(temp_wav_file.name, initial_prompt=initial_prompt)
         return res["text"]
-
 
 app = flask.Flask(__name__)
 
