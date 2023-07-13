@@ -25,7 +25,7 @@ def test_transcribe():
     dummy_audio = io.BytesIO(b"dummy binary data")
     dummy_audio.name = "audio.wav"
 
-    with patch('src.transcribe.whisper.transcribe', return_value={"text": "transcribed text"}) as mock_transcribe:
+    with patch('whisper.transcribe.transcribe', return_value={"text": "transcribed text"}) as mock_transcribe:
         res = transcribe.TranslateService.transcribe(dummy_audio)
         mock_transcribe.assert_called_once_with(dummy_audio)
 
