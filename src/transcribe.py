@@ -40,10 +40,9 @@ def ping():
     status = 200 if health else 404
     return flask.Response(response="\n", status=status, mimetype="application/json")
 
-@app.route("/invocations", methods=["POST"])
 def transcribe():
     data = flask.request.get_json()  # assumes that incoming request data is a JSON object
-    base64_audio_data = data['audio'].decode("utf-8")
+    base64_audio_data = data['audio']  # 'audio' field is already a base64-encoded string
     initial_prompt = data.get('initial_prompt')  # get 'initial_prompt' from the request, if it exists
     wav_binary = base64.b64decode(base64_audio_data)
     res = TranslateService.transcribe(wav_binary, initial_prompt)
