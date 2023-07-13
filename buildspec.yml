@@ -4,14 +4,14 @@ env:
   variables:
      image: "whisper"
      tag: "flasktest1"
-     
+
 phases:
-  pre_build:
+  build:
     commands:
-      - echo Running unit tests...
-      - echo Current directory is `pwd`
-      - echo PYTHONPATH is $PYTHONPATH
-      - export PYTHONPATH="./src:$PYTHONPATH"
-      - echo PYTHONPATH is $PYTHONPATH
-      - echo Contents of src directory && ls ./src
-      - python -m unittest discover -s test -p 'test*.py' || exit 1
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - chmod +x build_and_push.sh
+      - ./build_and_push.sh $image $AWS_REGION $tag
+  post_build:
+    commands:
+      - echo Build completed on `date`
