@@ -21,7 +21,7 @@ class TranslateService(object):
         return cls.model
 
     @classmethod
-    def transcribe(cls, wav_binary, initial_prompt=None):
+    def transcribe(cls, wav_binary, *, initial_prompt=None):
         # create a temporary file to store the audio data
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as temp_wav_file:
             temp_wav_file.write(wav_binary)
@@ -30,6 +30,7 @@ class TranslateService(object):
             # Pass initial_prompt to the transcribe method
             res = model.transcribe(temp_wav_file.name, initial_prompt=initial_prompt)
         return res["text"]
+
 
 app = flask.Flask(__name__)
 
@@ -46,5 +47,5 @@ def transcribe():
     base64_audio_data = data['audio']  # 'audio' field is already a base64-encoded string
     initial_prompt = data.get('initial_prompt')  # get 'initial_prompt' from the request, if it exists
     wav_binary = base64.b64decode(base64_audio_data)
-    res = TranslateService.transcribe(wav_binary, initial_prompt)
+    res = TranslateService.transcribe(wav_binary, initial_prompt = initial_prompt)
     return flask.Response(response=res, status=200, mimetype="text/plain")

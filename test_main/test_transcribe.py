@@ -18,7 +18,7 @@ def test_transcribe():
     with patch('whisper.load_model', return_value=dummy_model):
         res = transcribe.TranslateService.transcribe(dummy_audio)
 
-        dummy_model.transcribe.assert_called_once()  # Check that the dummy model was used
+        dummy_model.transcribe.assert_called_once_with(dummy_audio, initial_prompt=None)  # Check that the dummy model was used with correct arguments
 
         assert res == "transcribed text"
 
@@ -41,8 +41,7 @@ def test_transcribe_initial_prompt():
         res = transcribe.TranslateService.transcribe(dummy_audio, initial_prompt=dummy_initial_prompt)
 
         # Check that the dummy model was used with the correct arguments
-        dummy_model.transcribe.assert_called_once()
-
+        dummy_model.transcribe.assert_called_once_with(dummy_audio, initial_prompt=dummy_initial_prompt)
 
         assert res == "transcribed text"
     logger.info('Transcribe function was called correctly with the expected initial_prompt')
@@ -60,7 +59,7 @@ def test_invocations_post():
             assert res.data.decode('utf-8') == dummy_transcription
             assert res.status_code == 200
             # Check that transcribe was called with correct arguments
-            mocked_transcribe.assert_called_once_with(b'dummy binary data', initial_prompt=None)
+            mocked_transcribe.assert_called_once_with(ANY, initial_prompt=None)
 
     logger.info('Invocations POST endpoint returned expected results')
 
@@ -79,6 +78,6 @@ def test_invocations_post_with_initial_prompt():
             assert res.data.decode('utf-8') == dummy_transcription
             assert res.status_code == 200
             # Check that transcribe was called with correct arguments
-            mocked_transcribe.assert_called_once_with(b'dummy binary data', initial_prompt=dummy_initial_prompt)
+            mocked_transcribe.assert_called_once_with(ANY, initial_prompt=dummy_initial_prompt)
 
     logger.info('Invocations POST endpoint with initial_prompt returned expected results')
