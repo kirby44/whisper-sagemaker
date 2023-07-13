@@ -11,7 +11,7 @@ def test_transcribe():
     logger.info("Starting test: test_transcribe")
     dummy_audio = b"dummy binary data"  # this is now a bytes object
 
-    with patch('whisper.transcribe', return_value={"text": "transcribed text"}) as mock_transcribe:
+    with patch('whisper.transcribe.transcribe', return_value={"text": "transcribed text"}) as mock_transcribe:
         res = transcribe.TranslateService.transcribe(dummy_audio)
         mock_transcribe.assert_called_once_with(ANY)
 
