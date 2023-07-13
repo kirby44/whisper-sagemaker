@@ -60,7 +60,8 @@ def test_invocations_post():
             assert res.data.decode('utf-8') == dummy_transcription
             assert res.status_code == 200
             # Check that transcribe was called with correct arguments
-            mocked_transcribe.assert_called_once_with(ANY, initial_prompt=None)
+            mocked_transcribe.assert_called_once_with(b'dummy binary data', initial_prompt=None)
+
     logger.info('Invocations POST endpoint returned expected results')
 
 def test_invocations_post_with_initial_prompt():
@@ -78,5 +79,6 @@ def test_invocations_post_with_initial_prompt():
             assert res.data.decode('utf-8') == dummy_transcription
             assert res.status_code == 200
             # Check that transcribe was called with correct arguments
-            mocked_transcribe.assert_called_once_with(ANY, initial_prompt=dummy_initial_prompt)
+            mocked_transcribe.assert_called_once_with(b'dummy binary data', initial_prompt=dummy_initial_prompt)
+
     logger.info('Invocations POST endpoint with initial_prompt returned expected results')
