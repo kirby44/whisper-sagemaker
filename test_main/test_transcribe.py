@@ -21,6 +21,10 @@ def test_transcribe():
         dummy_model.transcribe.assert_called_once()  # Check that the dummy model was used
 
         assert res == "transcribed text"
+
+        # Clean up after the test
+        transcribe.TranslateService.model = None
+
     logger.info('Transcribe function was called correctly with the expected input')
 
 def test_transcribe_initial_prompt():
@@ -39,8 +43,6 @@ def test_transcribe_initial_prompt():
         # Check that the dummy model was used with the correct arguments
         dummy_model.transcribe.assert_called_once()
 
-        # Clean up after the test
-        transcribe.TranslateService.model = None
 
         assert res == "transcribed text"
     logger.info('Transcribe function was called correctly with the expected initial_prompt')
