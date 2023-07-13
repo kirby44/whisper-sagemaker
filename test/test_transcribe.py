@@ -1,6 +1,6 @@
 import logging
 import base64
-from unittest.mock import patch, ANY
+from unittest.mock import patch, ANY, Mock
 from src import transcribe
 
 # Set up logging
@@ -11,12 +11,18 @@ def test_transcribe():
     logger.info("Starting test: test_transcribe")
     dummy_audio = b"dummy binary data"  # this is now a bytes object
 
-    with patch('whisper.transcribe.transcribe', return_value={"text": "transcribed text"}) as mock_transcribe:
+    dummy_model = Mock()  # create a dummy model
+    dummy_model.transcribe.return_value = {"text": "transcribed text"}
+
+    # Replace whisper.load_model with a function that returns the dummy model
+    with patch('whisper.load_model', return_value=dummy_model):
         res = transcribe.TranslateService.transcribe(dummy_audio)
-        mock_transcribe.assert_called_once_with(ANY)
+
+        dummy_model.transcribe.assert_called_once_with(ANY)  # Check that the dummy model was used
 
         assert res == "transcribed text"
     logger.info('Transcribe function was called correctly with the expected input')
+
 
 def test_invocations_post():
     logger.info("Starting test: test_invocations_post")
