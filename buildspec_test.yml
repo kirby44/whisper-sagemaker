@@ -13,4 +13,4 @@ phases:
   build:
     commands:
       - echo run tests...
-      - python -m pytest pytest test_main
+      - python -m pytest test_main
