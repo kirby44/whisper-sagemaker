@@ -1,8 +1,7 @@
 import logging
 import base64
 from unittest.mock import patch, ANY
-from whisper import transcribe as whisper_transcribe
-from src import transcribe as src_transcribe
+from src import transcribe
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -13,7 +12,7 @@ def test_transcribe():
     dummy_audio = b"dummy binary data"  # this is now a bytes object
 
     with patch('whisper.transcribe.transcribe', return_value={"text": "transcribed text"}) as mock_transcribe:
-        res = src_transcribe.TranslateService.transcribe(dummy_audio)
+        res = transcribe.TranslateService.transcribe(dummy_audio)
         mock_transcribe.assert_called_once_with(ANY)
 
         assert res == "transcribed text"
@@ -23,7 +22,7 @@ def test_invocations_post():
     logger.info("Starting test: test_invocations_post")
     dummy_transcription = "transcribed text"
     with patch('src.transcribe.TranslateService.transcribe', return_value=dummy_transcription):
-        with src_transcribe.app.test_client() as client:
+        with transcribe.app.test_client() as client:
             res = client.post("/invocations", data=base64.b64encode(b"dummy binary data").decode("utf-8"))
             assert res.data.decode('utf-8') == dummy_transcription
             assert res.status_code == 200
