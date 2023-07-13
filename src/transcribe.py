@@ -9,12 +9,6 @@ prefix = "/opt/ml/"
 model_path = os.path.join(prefix, "model")
 model_size = "medium"
 
-def base64_to_wavfile(wav_base64) -> io.BytesIO:
-    wav_binary = base64.b64decode(wav_base64)
-    wav_file = io.BytesIO(wav_binary)
-    wav_file.name = "audio.wav"
-    return wav_file
-
 # TODO: TranscribeService
 class TranslateService(object):
     model = None
@@ -27,10 +21,13 @@ class TranslateService(object):
         return cls.model
 
     @classmethod
-    def transcribe(cls, voice_file):
-        model = cls.get_model()
-        res = model.transcribe(voice_file)
-
+    def transcribe(cls, wav_binary):
+        # create a temporary file to store the audio data
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as temp_wav_file:
+            temp_wav_file.write(wav_binary)
+            temp_wav_file.flush()  # make sure the data is written to disk
+            model = cls.get_model()
+            res = model.transcribe(temp_wav_file.name)
         return res["text"]
 
 
@@ -46,6 +43,6 @@ def ping():
 @app.route("/invocations", methods=["POST"])
 def transcribe():
     base64_audio_data = flask.request.get_data().decode("utf-8")
-    wav_file = base64_to_wavfile(base64_audio_data)
-    res = TranslateService.transcribe(wav_file)
+    wav_binary = base64.b64decode(base64_audio_data)
+    res = TranslateService.transcribe(wav_binary)
     return flask.Response(response=res, status=200, mimetype="text/plain")
