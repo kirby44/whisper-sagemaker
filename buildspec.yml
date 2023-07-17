@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
      image: "whisper"
-     tag: "flasktest2"
+     tag: "flasktest3"
 
 phases:
   build:
@@ -15,3 +15,7 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
+
+cache:
+  paths:
+    - '/root/.docker/**/*'
