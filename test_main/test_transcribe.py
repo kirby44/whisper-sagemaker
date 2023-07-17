@@ -102,7 +102,10 @@ def test_transcribe_different_languages(language, expected_language):
 
     # Replace whisper.load_model with a function that returns the dummy model
     with patch('whisper.load_model', return_value=dummy_model):
-        res = transcribe.TranslateService.transcribe(dummy_audio, language=language)
+        if language is None:
+            res = transcribe.TranslateService.transcribe(dummy_audio)
+        else:
+            res = transcribe.TranslateService.transcribe(dummy_audio, language=language)
 
         # add logging
         logger.info("Transcribe result: {}".format(res))
@@ -113,6 +116,9 @@ def test_transcribe_different_languages(language, expected_language):
         except AssertionError as e:
             logger.error(f"Transcribe was not called with the expected arguments for language={language}")
             raise e
+
+        # Clean up after the test
+        transcribe.TranslateService.model = None
 
     assert res == "transcribed text"
     logger.info(f'Transcribe function was called correctly with the expected language={expected_language}')
