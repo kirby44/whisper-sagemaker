@@ -2,6 +2,7 @@ import logging
 import base64
 from unittest.mock import patch, ANY, Mock
 from src import transcribe
+import pytest
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -43,8 +44,11 @@ def test_transcribe_initial_prompt():
         # Check that the dummy model was used with the correct arguments
         dummy_model.transcribe.assert_called_once()
 
-
         assert res == "transcribed text"
+
+        # Clean up after the test
+        transcribe.TranslateService.model = None
+
     logger.info('Transcribe function was called correctly with the expected initial_prompt')
 
 def test_invocations_post():
@@ -60,7 +64,7 @@ def test_invocations_post():
             assert res.data.decode('utf-8') == dummy_transcription
             assert res.status_code == 200
             # Check that transcribe was called with correct arguments
-            mocked_transcribe.assert_called_once_with(ANY, initial_prompt=None)
+            mocked_transcribe.assert_called_once_with(ANY, language=None, initial_prompt=None)
 
     logger.info('Invocations POST endpoint returned expected results')
 
@@ -79,6 +83,36 @@ def test_invocations_post_with_initial_prompt():
             assert res.data.decode('utf-8') == dummy_transcription
             assert res.status_code == 200
             # Check that transcribe was called with correct arguments
-            mocked_transcribe.assert_called_once_with(ANY, initial_prompt=dummy_initial_prompt)
+            mocked_transcribe.assert_called_once_with(ANY, language=None, initial_prompt=dummy_initial_prompt)
 
     logger.info('Invocations POST endpoint with initial_prompt returned expected results')
+
+@pytest.mark.parametrize("language, expected_language", [
+    (None, 'ja'),  # language in request is not defined, so it should default to 'ja'
+    ('ja', 'ja'),  # language = 'ja'
+    ('en', 'en'),  # language = 'en'
+    ('xx', 'xx'),  # language = 'xx', even though it's invalid, the function should still pass it through
+])
+def test_transcribe_different_languages(language, expected_language):
+    logger.info(f"Starting test: test_transcribe_different_languages with language={language}")
+    dummy_audio = b"dummy binary data"  # this is now a bytes object
+
+    dummy_model = Mock()  # create a dummy model
+    dummy_model.transcribe.return_value = {"text": "transcribed text"}
+
+    # Replace whisper.load_model with a function that returns the dummy model
+    with patch('whisper.load_model', return_value=dummy_model):
+        res = transcribe.TranslateService.transcribe(dummy_audio, language=language)
+
+        # add logging
+        logger.info("Transcribe result: {}".format(res))
+
+        # Check that the dummy model was used with the correct arguments
+        try:
+            dummy_model.transcribe.assert_called_once_with(ANY, language=expected_language, initial_prompt=None)
+        except AssertionError as e:
+            logger.error(f"Transcribe was not called with the expected arguments for language={language}")
+            raise e
+
+    assert res == "transcribed text"
+    logger.info(f'Transcribe function was called correctly with the expected language={expected_language}')

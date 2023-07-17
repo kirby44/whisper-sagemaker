@@ -5,9 +5,15 @@ import flask
 import io
 import base64
 
+# for test purpose, can be removed safely if not needed
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
 prefix = "/opt/ml/"
 model_path = os.path.join(prefix, "model")
-model_size = "medium"
+model_size = "base"
 
 # TODO: TranscribeService
 class TranslateService(object):
@@ -21,16 +27,25 @@ class TranslateService(object):
         return cls.model
 
     @classmethod
-    def transcribe(cls, wav_binary, *, initial_prompt=None):
+    def transcribe(cls, wav_binary, *, initial_prompt=None, language='ja'):
+        # add logging
+        logger.info("In transcribe method. Language: {}, initial_prompt: {}".format(language, initial_prompt))
+    
         # create a temporary file to store the audio data
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as temp_wav_file:
             temp_wav_file.write(wav_binary)
             temp_wav_file.flush()  # make sure the data is written to disk
             model = cls.get_model()
+            # add logging
+            logger.info("Model obtained: {}".format(model))
+    
             # Pass initial_prompt to the transcribe method
-            res = model.transcribe(temp_wav_file.name, initial_prompt=initial_prompt)
+            res = model.transcribe(temp_wav_file.name, initial_prompt=initial_prompt, language=language)
+    
+            # add logging
+            logger.info("Transcribe method called. Result: {}".format(res))
+    
         return res["text"]
-
 
 app = flask.Flask(__name__)
 
@@ -46,6 +61,7 @@ def transcribe():
     data = flask.request.get_json()  # assumes that incoming request data is a JSON object
     base64_audio_data = data['audio']  # 'audio' field is already a base64-encoded string
     initial_prompt = data.get('initial_prompt')  # get 'initial_prompt' from the request, if it exists
+    language = data.get('language')
     wav_binary = base64.b64decode(base64_audio_data)
-    res = TranslateService.transcribe(wav_binary, initial_prompt = initial_prompt)
+    res = TranslateService.transcribe(wav_binary, initial_prompt = initial_prompt, language = language)
     return flask.Response(response=res, status=200, mimetype="text/plain")
