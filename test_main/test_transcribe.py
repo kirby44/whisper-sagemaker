@@ -1,5 +1,6 @@
 import logging
 import base64
+import unittest
 from unittest.mock import patch, ANY, Mock
 from src import transcribe
 import pytest
