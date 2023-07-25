@@ -2,7 +2,7 @@ from __future__ import print_function
 import os, tempfile
 import whisper
 import flask
-import io
+import sys
 import base64
 
 # for test purpose, can be removed safely if not needed
@@ -10,6 +10,12 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+# Add stdout handler, to make sure not to be captured by Flask and won't be shown in CloudWatch
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 prefix = "/opt/ml/"
 model_path = os.path.join(prefix, "model")
@@ -44,7 +50,7 @@ class TranslateService(object):
         elif binary.startswith(b'\xFF\xF3') or binary.startswith(b'\xFF\xFA'):
             return '.mpga'
         else:
-            return '.mp4'  # unknown type, use generic binary extension
+            return '.mp4'  
 
     @classmethod
     def transcribe(cls, audio_binary, *, initial_prompt=None, language='ja'):
@@ -52,6 +58,7 @@ class TranslateService(object):
         logger.info("In transcribe method. Language: {}, initial_prompt: {}".format(language, initial_prompt))
 
         file_extension = cls.get_file_extension_from_binary(audio_binary)
+        logger.info(f'file extension: {file_extension}')
 
         # create a temporary file to store the audio data
         with tempfile.NamedTemporaryFile(suffix=file_extension, delete=True) as temp_audio_file:
@@ -65,7 +72,8 @@ class TranslateService(object):
             res = model.transcribe(temp_audio_file.name, initial_prompt=initial_prompt, language=language)
 
             # add logging
-            logger.info("Transcribe method called. Result: {}".format(res))
+            logger.info("Result: {}".format(res))
+            logger.info(f"transcription: {res['text']}")
 
         return res["text"]
 
@@ -81,7 +89,9 @@ def ping():
 @app.route("/invocations", methods=["POST"])
 def transcribe():
     data = flask.request.get_json()  # assumes that incoming request data is a JSON object
-    base64_audio_data = data['audio']  # 'audio' field is already a base64-encoded string
+    logger.info(f'data: {data}')
+    base64_audio_data = data['audio']  
+    logger.info(f'audio: {base64_audio_data}')
     initial_prompt = data.get('initial_prompt')  # get 'initial_prompt' from the request, if it exists
     language = data.get('language')
     audio_binary = base64.b64decode(base64_audio_data)

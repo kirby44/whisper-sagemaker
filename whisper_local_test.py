@@ -1,7 +1,8 @@
 import whisper
 import time
 
-audio_path = './audio/dialogue1.m4a'
+audio_path = './audio/video.mp4'
+#audio_path = './audio/dialogue1.m4a'
 language = 'ja'
 model_type = 'base'
 
