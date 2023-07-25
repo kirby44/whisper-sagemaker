@@ -15,7 +15,7 @@ class TestTranscribe(unittest.TestCase):
         self.audio_binary_wav = b'RIFF' + b'a' * 100
         self.audio_binary_mp3 = b'ID3' + b'a' * 100
         self.audio_binary_m4a = b'\x00\x00\x00\x20ftypM4A ' + b'a' * 100
-        #self.audio_binary_mp4 = b'\x00\x00\x00\x18ftypisom' + b'a' * 100
+        self.audio_binary_mp4 = b'\x00\x00\x00\x18ftypisom' + b'a' * 100
         self.audio_binary_webm = b'\x1a\x45\xdf\xa3' + b'a' * 100
         self.audio_binary_mpeg = b'\x00\x00\x01\xba' + b'a' * 100
         self.audio_binary_mpga = b'\xFF\xF3' + b'a' * 100
@@ -24,7 +24,7 @@ class TestTranscribe(unittest.TestCase):
         self.assertEqual(transcribe.TranslateService.get_file_extension_from_binary(self.audio_binary_wav), '.wav')
         self.assertEqual(transcribe.TranslateService.get_file_extension_from_binary(self.audio_binary_mp3), '.mp3')
         self.assertEqual(transcribe.TranslateService.get_file_extension_from_binary(self.audio_binary_m4a), '.m4a')
-        #self.assertEqual(transcribe.TranslateService.get_file_extension_from_binary(self.audio_binary_mp4), '.mp4')
+        self.assertEqual(transcribe.TranslateService.get_file_extension_from_binary(self.audio_binary_mp4), '.mp4')
         self.assertEqual(transcribe.TranslateService.get_file_extension_from_binary(self.audio_binary_webm), '.webm')
         self.assertEqual(transcribe.TranslateService.get_file_extension_from_binary(self.audio_binary_mpeg), '.mpeg')
         self.assertEqual(transcribe.TranslateService.get_file_extension_from_binary(self.audio_binary_mpga), '.mpga')
@@ -37,8 +37,8 @@ class TestTranscribe(unittest.TestCase):
         # Replace whisper.load_model with a function that returns the dummy model
         with patch('whisper.load_model', return_value=dummy_model):
             # Test with all supported file types
-            for binary in [self.audio_binary_wav, self.audio_binary_mp3, self.audio_binary_m4a, self.audio_binary_webm, self.audio_binary_mpeg, self.audio_binary_mpga]:
-            #for binary in [self.audio_binary_wav, self.audio_binary_mp3, self.audio_binary_m4a, self.audio_binary_mp4, self.audio_binary_webm, self.audio_binary_mpeg, self.audio_binary_mpga]:
+            #for binary in [self.audio_binary_wav, self.audio_binary_mp3, self.audio_binary_m4a, self.audio_binary_webm, self.audio_binary_mpeg, self.audio_binary_mpga]:
+            for binary in [self.audio_binary_wav, self.audio_binary_mp3, self.audio_binary_m4a, self.audio_binary_mp4, self.audio_binary_webm, self.audio_binary_mpeg, self.audio_binary_mpga]:
                 res = transcribe.TranslateService.transcribe(binary)
                 dummy_model.transcribe.assert_called()  # Check that the dummy model was used
                 assert res == "transcribed text"

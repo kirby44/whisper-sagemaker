@@ -2,19 +2,29 @@ version: 0.2
 
 env:
   variables:
-     image: "whisper"
-     tag: "audiodetect2"
+    image: "whisper"
+    tag: "audiodetect2"
+  secrets-manager:
+    DOCKERHUB_CREDENTIALS: dockerhub-credentials
 
 phases:
+  install:
+    runtime-versions:
+      docker: 20
+    commands:
+      - echo "Installing jq..."
+      - apt-get update && apt-get install -y jq
+      - echo "Logging in to Docker Hub..."
+      - echo $(echo $DOCKERHUB_CREDENTIALS | jq -r .password) | docker login --username $(echo $DOCKERHUB_CREDENTIALS | jq -r .username) --password-stdin
   build:
     commands:
-      - echo Build started on `date`
-      - echo Building the Docker image...
+      - echo "Build started on `date`"
+      - echo "Building the Docker image..."
       - chmod +x build_and_push.sh
       - ./build_and_push.sh $image $AWS_REGION $tag
   post_build:
     commands:
-      - echo Build completed on `date`
+      - echo "Build completed on `date`"
 
 cache:
   paths:
