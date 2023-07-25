@@ -35,7 +35,7 @@ class TranslateService(object):
             return '.mp3'
         elif binary[4:4+8] == b'ftypM4A ':
             return '.m4a'
-        elif binary[4:4+5] == b'ftypisom' or binary[4:4+5] == b'ftypmp42':
+        elif binary[4:4+8] in [b'ftypisom', b'ftypmp42', b'ftypiso5', b'ftypiso6', b'ftypM4V ', b'ftypqt  ']:
             return '.mp4'
         elif binary.startswith(b'\x1a\x45\xdf\xa3'):
             return '.webm'
@@ -44,7 +44,7 @@ class TranslateService(object):
         elif binary.startswith(b'\xFF\xF3') or binary.startswith(b'\xFF\xFA'):
             return '.mpga'
         else:
-            return '.bin'  # unknown type, use generic binary extension
+            return '.mp4'  # unknown type, use generic binary extension
 
     @classmethod
     def transcribe(cls, audio_binary, *, initial_prompt=None, language='ja'):
