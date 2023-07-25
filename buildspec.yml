@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
      image: "whisper"
-     tag: "audiodetect"
+     tag: "audiodetect2"
 
 phases:
   build:
