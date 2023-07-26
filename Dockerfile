@@ -10,7 +10,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
          ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip --no-cache-dir install git+https://github.com/openai/whisper.git setuptools-rust flask gunicorn
+RUN pip --no-cache-dir install git+https://github.com/openai/whisper.git setuptools-rust flask gunicorn boto3
 
 ENV PYTHONUNBUFFERED=TRUE
 ENV PYTHONDONTWRITEBYTECODE=TRUE
