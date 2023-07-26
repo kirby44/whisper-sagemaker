@@ -4,6 +4,7 @@ import whisper
 import flask
 import sys
 import base64
+import boto3
 
 # for test purpose, can be removed safely if not needed
 import logging
@@ -61,12 +62,20 @@ class TranslateService(object):
         logger.info(f'file extension: {file_extension}')
 
         # create a temporary file to store the audio data
-        with tempfile.NamedTemporaryFile(suffix=file_extension, delete=True) as temp_audio_file:
+        with tempfile.NamedTemporaryFile(suffix=file_extension, delete=False) as temp_audio_file:
             temp_audio_file.write(audio_binary)
             temp_audio_file.flush()  # make sure the data is written to disk
             model = cls.get_model()
+
             # add logging
             logger.info("Model obtained: {}".format(model))
+
+            # Upload the file to S3
+            s3_client = boto3.client('s3')
+            s3_bucket = "sagemaker-ap-northeast-1-133132895539"
+            s3_key = f"whisper/beforetranscribed/{os.path.basename(temp_audio_file.name)}"
+            s3_client.upload_file(temp_audio_file.name, s3_bucket, s3_key)
+            logger.info(f"File uploaded to S3: {s3_bucket}/{s3_key}")
 
             # Pass initial_prompt to the transcribe method
             res = model.transcribe(temp_audio_file.name, initial_prompt=initial_prompt, language=language)
