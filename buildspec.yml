@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     image: "whisper"
-    tag: "audiodetect4"
+    tag: "audiodetect5"
   secrets-manager:
     DOCKERHUB_CREDENTIALS: dockerhub-credentials
 

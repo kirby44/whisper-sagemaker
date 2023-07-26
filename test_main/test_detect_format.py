@@ -37,7 +37,6 @@ class TestTranscribe(unittest.TestCase):
         # Replace whisper.load_model with a function that returns the dummy model
         with patch('whisper.load_model', return_value=dummy_model):
             # Test with all supported file types
-            #for binary in [self.audio_binary_wav, self.audio_binary_mp3, self.audio_binary_m4a, self.audio_binary_webm, self.audio_binary_mpeg, self.audio_binary_mpga]:
             for binary in [self.audio_binary_wav, self.audio_binary_mp3, self.audio_binary_m4a, self.audio_binary_mp4, self.audio_binary_webm, self.audio_binary_mpeg, self.audio_binary_mpga]:
                 res = transcribe.TranslateService.transcribe(binary)
                 dummy_model.transcribe.assert_called()  # Check that the dummy model was used

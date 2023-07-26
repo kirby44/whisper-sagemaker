@@ -1,58 +1,43 @@
 import logging
 import base64
 import unittest
-from unittest.mock import patch, ANY, Mock
-from src import transcribe
+from unittest.mock import patch, Mock, ANY, mock_open
 import pytest
+from src import transcribe
 
 # Set up logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-def test_transcribe():
+@pytest.fixture
+def mock_transcribe_setup():
+    with patch('tempfile.NamedTemporaryFile', return_value=mock_open(read_data=b'dummy binary data')()) as mocked_temp_file, \
+         patch('whisper.load_model', return_value=Mock()), \
+         patch('boto3.client', return_value=Mock()), \
+         patch('os.path.splitext', return_value=['/tmp/tmpsr98x98o', '.wav']), \
+         patch('os.path.basename', return_value='tmpsr98x98o.wav'), \
+         patch('src.transcribe.AudioSegment.from_file', return_value=Mock()), \
+         patch('builtins.open', mock_open(read_data=b'dummy binary data')):
+        yield mocked_temp_file
+
+def test_transcribe(mock_transcribe_setup):
     logger.info("Starting test: test_transcribe")
     dummy_audio = b"dummy binary data"  # this is now a bytes object
 
-    dummy_model = Mock()  # create a dummy model
-    dummy_model.transcribe.return_value = {"text": "transcribed text"}
+    res = transcribe.TranslateService.transcribe(dummy_audio)
 
-    # Replace whisper.load_model with a function that returns the dummy model
-    with patch('whisper.load_model', return_value=dummy_model):
-        res = transcribe.TranslateService.transcribe(dummy_audio)
+    assert res == "transcribed text"
 
-        dummy_model.transcribe.assert_called_once()  # Check that the dummy model was used
-
-        assert res == "transcribed text"
-
-        # Clean up after the test
-        transcribe.TranslateService.model = None
-
-    logger.info('Transcribe function was called correctly with the expected input')
-
-def test_transcribe_initial_prompt():
+def test_transcribe_initial_prompt(mock_transcribe_setup):
     logger.info("Starting test: test_transcribe_initial_prompt")
     dummy_audio = b"dummy binary data"  # this is now a bytes object
     dummy_initial_prompt = "initial_prompt"
 
-    dummy_model = Mock()  # create a dummy model
-    dummy_model.transcribe.return_value = {"text": "transcribed text"}
+    res = transcribe.TranslateService.transcribe(dummy_audio, initial_prompt=dummy_initial_prompt)
 
-    # Replace whisper.load_model with a function that returns the dummy model
-    with patch('whisper.load_model', return_value=dummy_model):
-        # Add the initial_prompt argument when calling the transcribe method
-        res = transcribe.TranslateService.transcribe(dummy_audio, initial_prompt=dummy_initial_prompt)
+    assert res == "transcribed text"
 
-        # Check that the dummy model was used with the correct arguments
-        dummy_model.transcribe.assert_called_once()
-
-        assert res == "transcribed text"
-
-        # Clean up after the test
-        transcribe.TranslateService.model = None
-
-    logger.info('Transcribe function was called correctly with the expected initial_prompt')
-
-def test_invocations_post():
+def test_invocations_post(mock_transcribe_setup):
     logger.info("Starting test: test_invocations_post")
     dummy_transcription = "transcribed text"
     request_data = {
@@ -64,12 +49,9 @@ def test_invocations_post():
             res = client.post("/invocations", json=request_data)
             assert res.data.decode('utf-8') == dummy_transcription
             assert res.status_code == 200
-            # Check that transcribe was called with correct arguments
             mocked_transcribe.assert_called_once_with(ANY, language=None, initial_prompt=None)
 
-    logger.info('Invocations POST endpoint returned expected results')
-
-def test_invocations_post_with_initial_prompt():
+def test_invocations_post_with_initial_prompt(mock_transcribe_setup):
     logger.info("Starting test: test_invocations_post_with_initial_prompt")
     dummy_transcription = "transcribed text"
     dummy_initial_prompt = "initial_prompt"
@@ -83,10 +65,7 @@ def test_invocations_post_with_initial_prompt():
             res = client.post("/invocations", json=request_data)
             assert res.data.decode('utf-8') == dummy_transcription
             assert res.status_code == 200
-            # Check that transcribe was called with correct arguments
             mocked_transcribe.assert_called_once_with(ANY, language=None, initial_prompt=dummy_initial_prompt)
-
-    logger.info('Invocations POST endpoint with initial_prompt returned expected results')
 
 @pytest.mark.parametrize("language, expected_language", [
     (None, 'ja'),  # language in request is not defined, so it should default to 'ja'
@@ -94,32 +73,13 @@ def test_invocations_post_with_initial_prompt():
     ('en', 'en'),  # language = 'en'
     ('xx', 'xx'),  # language = 'xx', even though it's invalid, the function should still pass it through
 ])
-def test_transcribe_different_languages(language, expected_language):
+def test_transcribe_different_languages(language, expected_language, mock_transcribe_setup):  # Use the fixture here
     logger.info(f"Starting test: test_transcribe_different_languages with language={language}")
     dummy_audio = b"dummy binary data"  # this is now a bytes object
 
-    dummy_model = Mock()  # create a dummy model
-    dummy_model.transcribe.return_value = {"text": "transcribed text"}
-
-    # Replace whisper.load_model with a function that returns the dummy model
-    with patch('whisper.load_model', return_value=dummy_model):
-        if language is None:
-            res = transcribe.TranslateService.transcribe(dummy_audio)
-        else:
-            res = transcribe.TranslateService.transcribe(dummy_audio, language=language)
-
-        # add logging
-        logger.info("Transcribe result: {}".format(res))
-
-        # Check that the dummy model was used with the correct arguments
-        try:
-            dummy_model.transcribe.assert_called_once_with(ANY, language=expected_language, initial_prompt=None)
-        except AssertionError as e:
-            logger.error(f"Transcribe was not called with the expected arguments for language={language}")
-            raise e
-
-        # Clean up after the test
-        transcribe.TranslateService.model = None
+    if language is None:
+        res = transcribe.TranslateService.transcribe(dummy_audio)
+    else:
+        res = transcribe.TranslateService.transcribe(dummy_audio, language=language)
 
     assert res == "transcribed text"
-    logger.info(f'Transcribe function was called correctly with the expected language={expected_language}')

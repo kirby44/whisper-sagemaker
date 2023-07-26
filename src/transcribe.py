@@ -5,6 +5,7 @@ import flask
 import sys
 import base64
 import boto3
+from pydub import AudioSegment
 
 # for test purpose, can be removed safely if not needed
 import logging
@@ -60,6 +61,20 @@ class TranslateService(object):
 
         file_extension = cls.get_file_extension_from_binary(audio_binary)
         logger.info(f'file extension: {file_extension}')
+
+        # Check if file_extension is mp4
+        if file_extension == '.mp4':
+            # Convert to wav
+            with tempfile.NamedTemporaryFile(suffix=file_extension, delete=False) as temp_audio_file:
+                temp_audio_file.write(audio_binary)
+                temp_audio_file.flush()
+
+                audio = AudioSegment.from_file(temp_audio_file.name, format="mp4")
+                wav_filename = os.path.splitext(temp_audio_file.name)[0] + ".wav"
+                audio.export(wav_filename, format="wav")
+
+                audio_binary = open(wav_filename, 'rb').read()
+                file_extension = '.wav'
 
         # create a temporary file to store the audio data
         with tempfile.NamedTemporaryFile(suffix=file_extension, delete=False) as temp_audio_file:
