@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     image: "whisper"
-    tag: "audiodetect5"
+    tag: "ubuntu22.04"
   secrets-manager:
     DOCKERHUB_CREDENTIALS: dockerhub-credentials
 
