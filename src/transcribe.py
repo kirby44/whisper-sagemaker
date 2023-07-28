@@ -5,7 +5,6 @@ import flask
 import sys
 import base64
 import boto3
-from pydub import AudioSegment
 
 # for test purpose, can be removed safely if not needed
 import logging
