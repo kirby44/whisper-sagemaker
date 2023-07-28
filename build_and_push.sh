@@ -37,6 +37,7 @@ then
 fi
 
 fullname="${account}.dkr.ecr.${region}.amazonaws.com/${image}:${tag}"
+dockerhub_fullname="kirby44/whisper:${tag}"
 
 # If the repository doesn't exist in ECR, create it.
 aws ecr describe-repositories --repository-names "${image}" > /dev/null 2>&1
@@ -56,3 +57,4 @@ docker build -t ${image} .
 docker tag ${image} ${fullname}
 
 docker push ${fullname}
+docker push ${dockerhub_fullname}
