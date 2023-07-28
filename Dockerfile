@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.7.1-runtime-ubuntu20.04
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
 
 RUN apt-get -y update
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
